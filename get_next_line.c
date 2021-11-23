@@ -69,11 +69,23 @@ char *ft_copy(char **result)
 	char *line;
 
 	i = 0;
+	temp = NULL;
+	if(**result == '\0')
+		return (0);
+
 	while ((*result)[i] && (*result)[i] != '\n')
 		i++;
 	line = ft_substr(*result, 0, i + 1);
-	temp = ft_strdup(*result + i );
-	free(*result);
+	if(*(*result + i) != '\0')
+	{
+		temp = ft_strdup(*result + i + 1);
+		free(*result);
+	}
+	else
+	{
+		free(*result);
+		*result = NULL;
+	}
 	*result = temp;
 	return (line);
 }
@@ -85,6 +97,7 @@ char *get_next_line(fd)
 	char *buffer;
 	int n;
 
+	line = NULL;
 	buffer = malloc(sizeof(char) * BUFFER_SIZE + 1);
 	if (result == NULL)
 		result = ft_strdup("");
@@ -109,18 +122,22 @@ char *get_next_line(fd)
 				n = read(fd, buffer, BUFFER_SIZE);
 		}
 	}
-	/*
+	if(n == -1)
+	{
+		free(line);
+		return NULL;
+	}
 	if(result)
 		line = ft_copy(&result);
-		*/
 	
 
-		free(buffer);
+	free(buffer);
 	return (line);
 }
+/*
 int main()
 {
-	int fd = open("/Users/aboudarg/Cursus/get_next_line_42_1337/gnlTester/files/42_no_nl", O_RDWR);
+	int fd = open("/Users/aboudarg/Cursus/get_next_line_42_1337/gnlTester/files/41_no_nl", O_RDWR);
 	char *line = get_next_line(fd);
 	printf("%s", line);
 	free(line);
@@ -132,6 +149,7 @@ int main()
 	free(line);
 	line = get_next_line(fd);
 	printf("%s", line);
-	
+	system ("leaks a.out");
 	return (0);
 }
+*/
