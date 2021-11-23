@@ -44,13 +44,11 @@ size_t	ft_strlcat(char *dst, const char *src, size_t dstsize)
 	size_d = ft_strlen(dst);
 	if (dstsize > size_d)
 	{
-		while (size_s > i && i + 1 < dstsize - size_d && src[i] != '\n')
+		while (size_s > i && i + 1 < dstsize - size_d )
 		{
 			dst[i + size_d] = src[i];
 			i++;
 		}
-		if (src[i] == '\n')
-			dst[i + size_d++] = '\n';
 		dst[i + size_d] = '\0';
 		return (size_d + size_s);
 	}
