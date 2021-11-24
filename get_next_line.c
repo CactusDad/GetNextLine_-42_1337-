@@ -56,6 +56,35 @@ char    *copy_line(char **saved)
     while ((*saved)[i] && (*saved)[i] != '\n')
         i++;
     line = ft_substr(*saved, 0, i + 1);
+    temp = ft_substr(*saved, i + 1, ft_strlen(*saved) - (i + 1));
+    free(*saved);
+    if (temp[0] == '\0')
+    {
+        free(temp);
+        *saved = NULL;
+    }
+    else
+        *saved = temp;
+    return (line);
+}
+/*
+char    *copy_line(char **saved)
+{
+    int     i;
+    char    *line;
+    char    *temp;
+
+    i = 0;
+    line = NULL;
+    if (**saved == '\0')
+    {
+        free(*saved);
+        *saved = NULL;
+        return (NULL);
+    }
+    while ((*saved)[i] && (*saved)[i] != '\n')
+        i++;
+    line = ft_substr(*saved, 0, i + 1);
     if (*(*saved + i) != '\0')
     {
         temp = ft_strdup(*saved + i + 1);
@@ -76,7 +105,7 @@ char    *copy_line(char **saved)
    }
     return (line);
 }
-
+*/
 void    read_line(int fd, char **saved)
 {
     char    *buffer;
@@ -108,7 +137,11 @@ char    *get_next_line(int fd)
     static char *saved;
     
     if (saved == NULL)
+    {
         saved = ft_strdup("");
+        if (saved == NULL)
+            return (NULL);
+    }
     if (!check_new_line(saved))
         read_line(fd, &saved);
     return (copy_line(&saved));
