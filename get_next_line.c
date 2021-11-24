@@ -1,11 +1,31 @@
 #include "get_next_line.h"
-#include <fcntl.h>
 #include <stdio.h>
-#include <string.h>
+#include <unistd.h>
+#include<fcntl.h>
 
-int ft_strchr(char *ptr)
+char    *ft_strdup(const char *s1)
 {
+        size_t  size;
+        size_t  i;
+        char    *new_string;
 
+        i = 0;
+        size = 0;
+        while (s1[size])
+                size++;
+        new_string = (char *) malloc(sizeof(char) * size + 1);
+        if (new_string == NULL)
+                return (NULL);
+        while (i < size)
+        {
+                new_string[i] = s1[i];
+                i++;
+        }
+        new_string[i] = '\0';
+        return (new_string);
+}
+int check_new_line(char *ptr)
+{
 	int i;
 
 	i = 0;
@@ -19,137 +39,95 @@ int ft_strchr(char *ptr)
 	}
 	return (0);
 }
-
-size_t ft_strlcpy(char *dst, const char *src, size_t dstsize)
+char    *copy_line(char **saved)
 {
-	size_t i;
-	size_t src_size;
+    int     i;
+    char    *line;
+    char    *temp;
 
-	i = 0;
-	src_size = ft_strlen(src);
-	if (dstsize)
-	{
-		while (src_size > i && (i + 1) < dstsize)
-		{
-			dst[i] = src[i];
-			i++;
-		}
-		dst[i] = '\0';
-	}
-	return (src_size);
+    i = 0;
+    line = NULL;
+    if (**saved == '\0')
+    {
+        free(*saved);
+        *saved = NULL;
+        return (NULL);
+    }
+    while ((*saved)[i] && (*saved)[i] != '\n')
+        i++;
+    line = ft_substr(*saved, 0, i + 1);
+    if (*(*saved + i) != '\0')
+    {
+        temp = ft_strdup(*saved + i + 1);
+        free(*saved);
+        if (*temp)
+            *saved = temp; 
+        else
+        if(!*temp)
+        {
+            free(temp);
+            *saved = NULL;
+        }
+    }
+    else
+    {
+        free(*saved);
+        *saved = NULL;
+   }
+    return (line);
 }
 
-char *ft_substr(char const *s, unsigned int start, size_t len)
+void    read_line(int fd, char **saved)
 {
-	unsigned int size_s;
-	char *substr;
+    char    *buffer;
+    int     n;
+    char    *temp;
 
-	if (!s)
-		return (NULL);
-	size_s = ft_strlen(s);
-	if (start >= size_s)
-	{
-		substr = (char *)malloc(1);
-		*substr = '\0';
-		return (substr);
-	}
-	if (len > size_s)
-		len = size_s - start;
-	substr = (char *)malloc((len + 1) * sizeof(char));
-	if (substr == NULL)
-		return (NULL);
-	ft_strlcpy(substr, s + start, len + 1);
-	return (substr);
+    buffer = malloc(sizeof(char) * BUFFER_SIZE + 1);
+    n = read(fd, buffer, BUFFER_SIZE);
+    while (n > 0)
+    {
+        buffer[n] = '\0';
+        temp = ft_strjoin(*saved, buffer);
+        free(*saved);
+        *saved = temp;
+        if (check_new_line(*saved))
+        {
+            free(buffer);
+            return ;
+        }
+        free(buffer);
+        buffer = malloc(sizeof(char) * BUFFER_SIZE + 1);
+        n = read(fd, buffer, BUFFER_SIZE);
+    }
+    free(buffer);
 }
 
-char *ft_copy(char **result)
+char    *get_next_line(int fd)
 {
-	int i;
-	char *temp;
-	char *line;
-
-	i = 0;
-	temp = NULL;
-	if(**result == '\0')
-		return (0);
-
-	while ((*result)[i] && (*result)[i] != '\n')
-		i++;
-	line = ft_substr(*result, 0, i + 1);
-	if(*(*result + i) != '\0')
-	{
-		temp = ft_strdup(*result + i + 1);
-		free(*result);
-	}
-	else
-	{
-		free(*result);
-		*result = NULL;
-	}
-	*result = temp;
-	return (line);
-}
-
-char *get_next_line(fd)
-{
-	static char *result = NULL;
-	char *line;
-	char *buffer;
-	int n;
-
-	line = NULL;
-	buffer = malloc(sizeof(char) * BUFFER_SIZE + 1);
-	if (result == NULL)
-		result = ft_strdup("");
-	if (ft_strchr(result))
-	{
-		free(buffer);
-		return ft_copy(&result);
-	}
-	else
-	{
-		n = read(fd, buffer, BUFFER_SIZE);
-		while (n > 0)
-		{
-			buffer[n] = '\0';
-			result = ft_strjoin(result, buffer);
-			if (ft_strchr(result))
-			{
-				free(buffer);
-				return (ft_copy(&result));
-			}
-			else
-				n = read(fd, buffer, BUFFER_SIZE);
-		}
-	}
-	if(n == -1)
-	{
-		free(line);
-		return NULL;
-	}
-	if(result)
-		line = ft_copy(&result);
-	
-
-	free(buffer);
-	return (line);
+    static char *saved;
+    
+    if (saved == NULL)
+        saved = ft_strdup("");
+    if (!check_new_line(saved))
+        read_line(fd, &saved);
+    return (copy_line(&saved));
 }
 /*
 int main()
 {
-	int fd = open("/Users/aboudarg/Cursus/get_next_line_42_1337/gnlTester/files/41_no_nl", O_RDWR);
-	char *line = get_next_line(fd);
-	printf("%s", line);
-	free(line);
-	line = get_next_line(fd);
-	printf("%s", line);
-	free(line);
-	line = get_next_line(fd);
-	printf("%s", line);
-	free(line);
-	line = get_next_line(fd);
-	printf("%s", line);
-	system ("leaks a.out");
-	return (0);
+    char *line;
+
+int i = 0;
+int fd = open("/Users/aboudarg/Cursus/get_next_line_42_1337/gnlTester/files/41_no_nl", O_RDWR);
+while (i < 2)
+{
+    line = get_next_line(fd);
+    printf("%s",line);
+    free(line); 
+    i++;
+}
+
+    return (0);
 }
 */
