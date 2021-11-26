@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: aboudarg <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/26 18:04:29 by aboudarg          #+#    #+#             */
-/*   Updated: 2021/11/26 18:04:34 by aboudarg         ###   ########.fr       */
+/*   Created: 2021/11/26 18:05:47 by aboudarg          #+#    #+#             */
+/*   Updated: 2021/11/26 18:05:50 by aboudarg         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include<fcntl.h>
+#include<limits.h>
 
 char	*ft_strdup(const char *s1)
 {
@@ -53,7 +54,7 @@ int	check_new_line(char *ptr)
 	return (0);
 }
 
-char	*copy_line(char **saved)
+char	*copy_line(char **backup)
 {
 	int		i;
 	char	*line;
@@ -61,24 +62,24 @@ char	*copy_line(char **saved)
 
 	i = 0;
 	line = NULL;
-	while ((*saved)[i] && (*saved)[i] != '\n')
+	while ((*backup)[i] && (*backup)[i] != '\n')
 		i++;
-	line = ft_substr(*saved, 0, i + 1);
-	temp = ft_substr(*saved, i + 1, ft_strlen(*saved) - (i + 1));
+	line = ft_substr(*backup, 0, i + 1);
+	temp = ft_substr(*backup, i + 1, ft_strlen(*backup) - (i + 1));
 	if (line == NULL || temp == NULL)
 		return (NULL);
-	free(*saved);
+	free(*backup);
 	if (temp[0] == '\0')
 	{
 		free(temp);
-		*saved = NULL;
+		*backup = NULL;
 	}
 	else
-		*saved = temp;
+		*backup = temp;
 	return (line);
 }
 
-void	read_line(int fd, char **saved)
+void	read_line(int fd, char **backup)
 {
 	char	*buffer;
 	int		n;
@@ -89,10 +90,10 @@ void	read_line(int fd, char **saved)
 	while (n > 0)
 	{
 		buffer[n] = '\0';
-		temp = ft_strjoin(*saved, buffer);
-		free(*saved);
-		*saved = temp;
-		if (check_new_line(*saved))
+		temp = ft_strjoin(*backup, buffer);
+		free(*backup);
+		*backup = temp;
+		if (check_new_line(*backup))
 		{
 			free(buffer);
 			return ;
@@ -106,23 +107,25 @@ void	read_line(int fd, char **saved)
 
 char	*get_next_line(int fd)
 {
-	static char	*saved;
+	static char	*backup[OPEN_MAX];
 
-	if (saved == NULL)
+	if (fd < 0)
+		return (NULL);
+	if (backup[fd] == NULL)
 	{
-		saved = ft_strdup("");
-		if (saved == NULL)
+		backup[fd] = ft_strdup("");
+		if (backup[fd] == NULL)
 			return (NULL);
 	}
-	if (!check_new_line(saved))
-		read_line(fd, &saved);
-	if (*saved == '\0')
+	if (!check_new_line(backup[fd]))
+		read_line(fd, &backup[fd]);
+	if (backup[fd] && backup[fd][0] == '\0')
 	{
-		free(saved);
-		saved = NULL;
+		free(backup[fd]);
+		backup[fd] = NULL;
 		return (NULL);
 	}
-	return (copy_line(&saved));
+	return (copy_line(&backup[fd]));
 }
 
 /*
@@ -131,16 +134,14 @@ int main()
 	char *line;
 
 int i = 0;
-int fd = open("/Users/aboudarg/Cursus/get_next_line_42_1337/gnlTester/files/41_no_nl", O_RDWR);
+int fd = open("/Users/aboudarg/Cursus/get_next_line_42_1337/gnlTester/files/empty", O_RDWR);
 while (i < 2)
 {
-	line = get_next_line(fd);
+	line = get_next_line(10240);
 	printf("%s",line);
 	free(line); 
 	i++;
 }
-while(1)
-;
 	return (0);
 }
 */
