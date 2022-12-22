@@ -15,18 +15,14 @@ get_next_line is a function that reads a single line from a file descriptor, ret
 This repository contains the source code for get_next_line, as well as a test suite and example programs that demonstrate its usage.
 # Usage
 
-To use the get_next_line function, you need to include the header file in your C program and open the file that you want to read using the open function. Then, allocate memory for a char * to store the line read by get_next_line and call the function with the file descriptor and the address of the char *. Check the return value of get_next_line to determine the status: if it is 1, a line was read successfully; if it is 0, the end of the file was reached; if it is -1, an error occurred. When you are finished with the char *, free the memory allocated for it.
+To use the get_next_line function, you need to include the header file in your C program and open the file that you want to read using the open function. Then, allocate memory for a char * to store the line read by get_next_line and call the function with the file descriptor and the address of the char *. Check the return value of get_next_line to determine the status: if it is not NULL, a line was read successfully; if it is NULL, the end of the file was reached; When you are finished with the char *, free the memory allocated for it 😜.
 ```c++
 int fd;
 char *line;
 
 line = get_next_line(fd);
 ```
-The `get_next_line` function returns an integer indicating the status:
-
-    * 1: A line was read successfully.
-    * 0: End of file was reached.
-    * -1: An error occurred.
+If no text to read is discovered, the `get_next_line` function returns NULL. 
 
 # API
 
